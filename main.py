@@ -20,11 +20,10 @@ parser.add_argument('mode', choices=['enc', 'dec'])
 parser.add_argument('cover', type=str, help="Path to the cover image or cover text for QR")
 parser.add_argument('-i', '--input', type=str, help="Message to embed or path to textfile")
 parser.add_argument('-o', '--overwrite', action='store_true', help="Overwrite the original image")
-parser.add_argument('-a', '--algorithm', choices=["LSB", "PVD", "RPP", "QR"], help="Algorithm used, default LSB")
+parser.add_argument('-a', '--algorithm', choices=["LSB", "PVD", "RPP", "QR"], help="Algorithm used, the default algorithm is LSB")
 parser.add_argument('-s', '--seed', type=str, help="Seed for the random number generator used in RPP steg")
 parser.add_argument('-Qv', '--QR_version', type=int, help="Minimum requested QR code version")
 parser.add_argument('-d','--difference', action='store_true', help="Generate a difference image")
-parser.add_argument('-e', '--encryption', nargs='?', const=True, default=False, help="Perform encryption with Fernet")
 
 args = parser.parse_args()
 print(args)
@@ -53,7 +52,7 @@ def main():
                 encrypt, decrypt = algorithm_functions["LSB"]
 
             if args.mode == "enc":
-                print("Encrypting...")
+                print("Embedding...")
                 if args.input != None:
                     message = ""
                     if path_check(args.input):
@@ -61,8 +60,6 @@ def main():
                             message = file.read()
                     else:
                         message = args.input
-                    if args.encryption:
-                        print("Encryption not yet available")
                     message = message + '\0'
                     original_image = None
                     if args.difference != None:
@@ -74,14 +71,14 @@ def main():
                         cv2.imwrite(path + "output.png", image_with_message)
                     else:
                         cv2.imwrite(args.cover, image_with_message)
-                    if args.difference != None:
+                    if args.difference:
                         images = difference(original_image, image_with_message)
                         for img in images:
                             cv2.imwrite(path + img[0], img[1])  
                 else:
                     print("Missing text to encrypt")
             else: 
-                print("Decrypting...")
+                print("Extracting...")
                 result = decrypt(image_path=args.cover, seed=args.seed)
                 print(result)
         else:
